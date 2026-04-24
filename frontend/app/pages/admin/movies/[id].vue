@@ -419,7 +419,7 @@ async function removeEpisodeSubtitle(ep: any, sub: any, idx: number) {
     try {
       const token = getToken();
       await $fetch('/api/admin/subtitles', {
-        method: 'DELETE',
+        method: 'DELETE' as any,
         headers: { Authorization: `Bearer ${token}` },
         body: { id: sub.id },
       });
@@ -443,7 +443,7 @@ async function removeSubtitle(idx: number) {
     try {
       const token = getToken();
       await $fetch('/api/admin/subtitles', {
-        method: 'DELETE',
+        method: 'DELETE' as any,
         headers: { Authorization: `Bearer ${token}` },
         body: { id: (sub as any).id },
       });
