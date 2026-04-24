@@ -382,6 +382,9 @@ onMounted(() => {
   .navbar__links {
     display: none;
   }
+  .navbar__actions {
+    margin-left: auto;
+  }
   .navbar__mobile-toggle {
     display: flex;
   }
