@@ -38,47 +38,58 @@ export default defineEventHandler(async (event) => {
     ];
   }
 
-  const [movies, total] = await Promise.all([
-    prisma.movie.findMany({
-      where,
-      select: {
-        id: true,
-        title: true,
-        titleVi: true,
-        slug: true,
-        posterUrl: true,
-        backdropUrl: true,
-        imdbRating: true,
-        releaseYear: true,
-        runtime: true,
-        type: true,
-        featured: true,
-        genres: {
-          select: { genre: { select: { name: true, slug: true } } },
+  try {
+    const [movies, total] = await Promise.all([
+      prisma.movie.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          titleVi: true,
+          slug: true,
+          posterUrl: true,
+          backdropUrl: true,
+          imdbRating: true,
+          releaseYear: true,
+          runtime: true,
+          type: true,
+          featured: true,
+          genres: {
+            select: { genre: { select: { name: true, slug: true } } },
+          },
+          videoSources: {
+            select: { quality: true },
+            distinct: ['quality'],
+          },
         },
-        videoSources: {
-          select: { quality: true },
-          distinct: ['quality'],
-        },
-      },
-      orderBy: { [sort]: order },
-      skip: (page - 1) * limit,
-      take: limit,
-    }),
-    prisma.movie.count({ where }),
-  ]);
+        orderBy: { [sort]: order },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.movie.count({ where }),
+    ]);
 
-  return {
-    movies: movies.map((m: any) => ({
-      ...m,
-      genres: m.genres.map((mg: any) => mg.genre),
-      quality: m.videoSources[0]?.quality,
-    })),
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
-  };
+    return {
+      movies: movies.map((m: any) => ({
+        ...m,
+        genres: m.genres.map((mg: any) => mg.genre),
+        quality: m.videoSources[0]?.quality,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  } catch (error: any) {
+    return {
+      error: true,
+      message: error.message || 'Unknown error',
+      name: error.name,
+      code: error.code,
+      meta: error.meta,
+      stack: error.stack
+    };
+  }
 });
