@@ -3,12 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlserver"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 // ─── Models ──────────────────────────────────────
-// Note: SQL Server doesn't support enums. Using String fields with comments.
 
 model User {
   id        Int      @id @default(autoincrement())
@@ -21,14 +20,14 @@ model User {
 
 model Movie {
   id          Int      @id @default(autoincrement())
-  title       String   @db.NVarChar(500)
-  titleVi     String?  @db.NVarChar(500)
+  title       String   @db.VarChar(500)
+  titleVi     String?  @db.VarChar(500)
   slug        String   @unique @db.VarChar(500)
-  overview    String?  @db.NVarChar(Max)
-  overviewVi  String?  @db.NVarChar(Max)
-  posterUrl   String?  @db.NVarChar(1000)
-  backdropUrl String?  @db.NVarChar(1000)
-  trailerUrl  String?  @db.NVarChar(1000)
+  overview    String?  @db.Text
+  overviewVi  String?  @db.Text
+  posterUrl   String?  @db.Text
+  backdropUrl String?  @db.Text
+  trailerUrl  String?  @db.Text
   imdbRating  Float?
   imdbId      String?  @unique @db.VarChar(20)
   releaseYear Int?
@@ -56,7 +55,7 @@ model Episode {
   movieId   Int
   season    Int
   episode   Int
-  title     String? @db.NVarChar(500)
+  title     String? @db.VarChar(500)
   runtime   Int?
 
   movie        Movie         @relation(fields: [movieId], references: [id], onDelete: Cascade)
@@ -70,14 +69,14 @@ model VideoSource {
   id          Int      @id @default(autoincrement())
   movieId     Int?
   episodeId   Int?
-  driveUrl    String   @db.NVarChar(Max)        // Full Google Drive share link
-  driveFileId String   @db.VarChar(200)         // Extracted file ID for API access
-  quality     String   @db.VarChar(20)          // HD_720 | FHD_1080 | QHD_2K
-  label       String?  @db.NVarChar(200)        // Optional display label
+  driveUrl    String   @db.Text             // Full Google Drive share link
+  driveFileId String   @db.VarChar(200)     // Extracted file ID for API access
+  quality     String   @db.VarChar(20)      // HD_720 | FHD_1080 | QHD_2K
+  label       String?  @db.VarChar(200)     // Optional display label
   createdAt   DateTime @default(now())
 
   movie   Movie?   @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  episode Episode? @relation(fields: [episodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  episode Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade)
 
   @@index([movieId])
   @@index([episodeId])
@@ -89,14 +88,14 @@ model Subtitle {
   movieId   Int?
   episodeId Int?
   language  String   @db.VarChar(10)
-  label     String   @db.NVarChar(100)
-  fileUrl   String   @db.NVarChar(1000)
-  content   String?  @db.NVarChar(Max)
+  label     String   @db.VarChar(100)
+  fileUrl   String   @db.Text
+  content   String?  @db.Text
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
 
   movie   Movie?   @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  episode Episode? @relation(fields: [episodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  episode Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade)
 
   @@index([movieId])
   @@index([episodeId])
@@ -105,14 +104,14 @@ model Subtitle {
 
 model Genre {
   id     Int          @id @default(autoincrement())
-  name   String       @unique @db.NVarChar(100)
+  name   String       @unique @db.VarChar(100)
   slug   String       @unique @db.VarChar(100)
   movies MovieGenre[]
 }
 
 model Country {
   id     Int            @id @default(autoincrement())
-  name   String         @unique @db.NVarChar(100)
+  name   String         @unique @db.VarChar(100)
   code   String         @unique @db.VarChar(10)
   movies MovieCountry[]
 }

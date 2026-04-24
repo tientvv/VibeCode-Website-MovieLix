@@ -1,24 +1,25 @@
 services:
-  # ─── SQL Server 2022 ───────────────────────────
+  # ─── PostgreSQL 16 (Siêu nhẹ - chỉ ~100MB RAM) ─────
   db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: postgres:16-alpine
     container_name: movielix-db
     environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=movielix
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=movielix
     volumes:
-      - mssql_data:/var/opt/mssql
+      - pg_data:/var/lib/postgresql/data
     ports:
-      - '1433:1433'
+      - '5432:5432'
     networks:
       - movielix-net
     restart: unless-stopped
     healthcheck:
-      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -C -Q "SELECT 1" || exit 1
+      test: pg_isready -U movielix -d movielix
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 10s
 
   # ─── Nuxt 3 Frontend ──────────────────────────
   frontend:
@@ -39,7 +40,6 @@ services:
       - NITRO_HTTPS=false
       - NITRO_HOST=0.0.0.0
       - NITRO_PORT=3000
-      - NODE_TLS_REJECT_UNAUTHORIZED=0
     ports:
       - '3000:3000'
     networks:
@@ -65,7 +65,7 @@ services:
       - frontend
 
 volumes:
-  mssql_data:
+  pg_data:
     driver: local
   subtitle_files:
     driver: local
