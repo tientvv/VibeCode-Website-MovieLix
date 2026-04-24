@@ -415,9 +415,18 @@ function addEpisodeSubtitle(ep: any) {
 
 async function removeEpisodeSubtitle(ep: any, sub: any, idx: number) {
   if (sub.id) {
-    // Actually our api doesn't have a DELETE for subtitles per se,
-    // so we'll just splice it from the frontend for now, or you'd need an endpoint for it.
-    // The user usually doesn't delete existing subtitles in this UI flow right now.
+    if (!confirm('Delete this subtitle permanently?')) return;
+    try {
+      const token = getToken();
+      await $fetch('/api/admin/subtitles', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+        body: { id: sub.id },
+      });
+    } catch {
+      alert('Failed to delete subtitle');
+      return;
+    }
   }
   ep.subtitles.splice(idx, 1);
 }
@@ -426,7 +435,23 @@ function addSubtitle() {
   subtitles.value.push({ language: 'vi', srtContent: '' });
 }
 
-function removeSubtitle(idx: number) {
+async function removeSubtitle(idx: number) {
+  const sub = subtitles.value[idx];
+  if (!sub) return;
+  if ((sub as any).id) {
+    if (!confirm('Delete this subtitle permanently?')) return;
+    try {
+      const token = getToken();
+      await $fetch('/api/admin/subtitles', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+        body: { id: (sub as any).id },
+      });
+    } catch {
+      alert('Failed to delete subtitle');
+      return;
+    }
+  }
   subtitles.value.splice(idx, 1);
 }
 
