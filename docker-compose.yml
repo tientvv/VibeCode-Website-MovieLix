@@ -1,0 +1,75 @@
+services:
+  # ─── SQL Server 2022 ───────────────────────────
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: movielix-db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - mssql_data:/var/opt/mssql
+    ports:
+      - '1433:1433'
+    networks:
+      - movielix-net
+    restart: unless-stopped
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ─── Nuxt 3 Frontend ──────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: movielix-frontend
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - TMDB_API_KEY=${TMDB_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - NUXT_PUBLIC_APP_URL=${NUXT_PUBLIC_APP_URL}
+      - NUXT_PUBLIC_STREAMING_URL=${NUXT_PUBLIC_STREAMING_URL}
+      - NUXT_PUBLIC_TRUST_PROXY=true
+      - NITRO_HTTPS=false
+      - NITRO_HOST=0.0.0.0
+      - NITRO_PORT=3000
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+    ports:
+      - '3000:3000'
+    networks:
+      - movielix-net
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ─── Cloudflare Tunnel ─────────────────────────
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: movielix-tunnel
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+      - TUNNEL_NO_TLS_VERIFY=true
+      - TUNNEL_ORIGIN_ENABLE_HTTP2=false
+    networks:
+      - movielix-net
+    restart: unless-stopped
+    depends_on:
+      - frontend
+
+volumes:
+  mssql_data:
+    driver: local
+  subtitle_files:
+    driver: local
+
+networks:
+  movielix-net:
+    driver: bridge

@@ -1,0 +1,12 @@
+name = "movielix-streaming-worker"
+main = "src/index.ts"
+compatibility_date = "2024-03-20"
+
+# Dành riêng cho môi trường web CORS allow
+[vars]
+CORS_ORIGIN = "*"
+
+# Các bí mật này không để lộ lên source code, bạn sẽ cấu hình trên Dashboard hoặc CLI
+# [secrets]
+# GOOGLE_CLIENT_EMAIL
+# GOOGLE_PRIVATE_KEY

@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Models ──────────────────────────────────────
+// Note: SQL Server doesn't support enums. Using String fields with comments.
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(100)
+  password  String   @db.VarChar(255)
+  role      String   @default("ADMIN") @db.VarChar(20)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Movie {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.NVarChar(500)
+  titleVi     String?  @db.NVarChar(500)
+  slug        String   @unique @db.VarChar(500)
+  overview    String?  @db.NVarChar(Max)
+  overviewVi  String?  @db.NVarChar(Max)
+  posterUrl   String?  @db.NVarChar(1000)
+  backdropUrl String?  @db.NVarChar(1000)
+  trailerUrl  String?  @db.NVarChar(1000)
+  imdbRating  Float?
+  imdbId      String?  @unique @db.VarChar(20)
+  releaseYear Int?
+  runtime     Int?
+  type        String   @default("MOVIE") @db.VarChar(20)     // MOVIE | TV_SERIES
+  status      String   @default("DRAFT") @db.VarChar(20)     // DRAFT | PUBLISHED | HIDDEN
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  genres       MovieGenre[]
+  countries    MovieCountry[]
+  videoSources VideoSource[]
+  subtitles    Subtitle[]
+  episodes     Episode[]
+
+  @@index([status])
+  @@index([type])
+  @@index([featured])
+  @@index([releaseYear])
+}
+
+model Episode {
+  id        Int     @id @default(autoincrement())
+  movieId   Int
+  season    Int
+  episode   Int
+  title     String? @db.NVarChar(500)
+  runtime   Int?
+
+  movie        Movie         @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  videoSources VideoSource[]
+  subtitles    Subtitle[]
+
+  @@unique([movieId, season, episode])
+}
+
+model VideoSource {
+  id          Int      @id @default(autoincrement())
+  movieId     Int?
+  episodeId   Int?
+  driveUrl    String   @db.NVarChar(Max)        // Full Google Drive share link
+  driveFileId String   @db.VarChar(200)         // Extracted file ID for API access
+  quality     String   @db.VarChar(20)          // HD_720 | FHD_1080 | QHD_2K
+  label       String?  @db.NVarChar(200)        // Optional display label
+  createdAt   DateTime @default(now())
+
+  movie   Movie?   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  episode Episode? @relation(fields: [episodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([movieId])
+  @@index([episodeId])
+  @@index([quality])
+}
+
+model Subtitle {
+  id        Int      @id @default(autoincrement())
+  movieId   Int?
+  episodeId Int?
+  language  String   @db.VarChar(10)
+  label     String   @db.NVarChar(100)
+  fileUrl   String   @db.NVarChar(1000)
+  content   String?  @db.NVarChar(Max)
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  movie   Movie?   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  episode Episode? @relation(fields: [episodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([movieId])
+  @@index([episodeId])
+  @@index([language])
+}
+
+model Genre {
+  id     Int          @id @default(autoincrement())
+  name   String       @unique @db.NVarChar(100)
+  slug   String       @unique @db.VarChar(100)
+  movies MovieGenre[]
+}
+
+model Country {
+  id     Int            @id @default(autoincrement())
+  name   String         @unique @db.NVarChar(100)
+  code   String         @unique @db.VarChar(10)
+  movies MovieCountry[]
+}
+
+// ─── Junction Tables ────────────────────────────
+
+model MovieGenre {
+  movieId Int
+  genreId Int
+  movie   Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  genre   Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([movieId, genreId])
+}
+
+model MovieCountry {
+  movieId   Int
+  countryId Int
+  movie     Movie   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  country   Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+
+  @@id([movieId, countryId])
+}
