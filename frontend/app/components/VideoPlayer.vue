@@ -248,17 +248,31 @@ onMounted(async () => {
     return;
   }
 
-  player.on('ready', () => {
+  const getProgressKey = () => `video_progress_${props.currentEpisode?.id || props.playerId || props.src}`;
 
+  player.on('ready', () => {
     player?.play().catch(() => {});
   });
 
-  player.on('error', (err: any) => {
+  player.on('video:timeupdate', () => {
+    if (player && player.currentTime > 5) {
+      localStorage.setItem(getProgressKey(), player.currentTime.toString());
+    }
+  });
 
+  player.on('video:loadedmetadata', () => {
+    const savedTime = localStorage.getItem(getProgressKey());
+    if (savedTime && player && player.video) {
+      const time = parseFloat(savedTime);
+      // Only resume if valid and not too close to the end
+      if (time > 0 && (!player.duration || time < player.duration - 10)) {
+        player.currentTime = time;
+      }
+    }
   });
 
   player.on('error', (err: any) => {
-
+    console.error('Artplayer error:', err);
   });
 });
 

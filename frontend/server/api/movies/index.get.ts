@@ -44,6 +44,8 @@ export default defineEventHandler(async (event) => {
           title: true,
           titleVi: true,
           slug: true,
+          overview: true,
+          overviewVi: true,
           posterUrl: true,
           backdropUrl: true,
           imdbRating: true,

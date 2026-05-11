@@ -188,9 +188,27 @@ const qualityLabel = computed(() => {
 
 @media (max-width: 768px) {
   .movie-card { width: 140px; }
+  .movie-card__rating,
+  .movie-card__quality {
+    font-size: 10px;
+    padding: 2px 4px;
+    top: 6px;
+  }
+  .movie-card__rating { left: 6px; }
+  .movie-card__quality { right: 6px; }
+  .movie-card__play-icon {
+    width: 36px;
+    height: 36px;
+  }
 }
 
 @media (max-width: 480px) {
   .movie-card { width: 120px; }
+  .movie-card__rating,
+  .movie-card__quality {
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
 }
 </style>
