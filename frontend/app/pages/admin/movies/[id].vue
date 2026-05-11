@@ -731,6 +731,11 @@ useHead({ title: computed(() => (isNew.value ? 'Add Movie — Admin' : 'Edit Mov
 </script>
 
 <style scoped>
+.admin-edit .card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--color-border);
+}
 .admin-edit {
   min-height: 100vh;
   padding-top: var(--space-8);
