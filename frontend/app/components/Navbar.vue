@@ -152,12 +152,12 @@ onMounted(() => {
   width: 100%;
   height: var(--navbar-height);
   z-index: 1000;
-  background: linear-gradient(to bottom, rgba(11, 14, 20, 0.85) 0%, transparent 100%);
+  background: linear-gradient(to bottom, rgba(5, 5, 5, 0.8) 0%, transparent 100%);
   transition: background var(--transition-base), box-shadow var(--transition-base);
 }
 
 .navbar--scrolled {
-  background: rgba(11, 14, 20, 0.95);
+  background: rgba(5, 5, 5, 0.95);
   box-shadow: 0 1px 0 var(--color-border);
 }
 

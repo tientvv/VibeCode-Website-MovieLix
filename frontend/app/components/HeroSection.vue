@@ -15,36 +15,55 @@
     <div class="hero__content container">
       <div class="hero__info">
         <h1 class="hero__title" id="hero-title">
-          {{ movie?.titleVi || movie?.title || 'Featured Movie' }}
+          {{ movie?.title || 'Featured Movie' }}
         </h1>
 
+        <div class="hero__meta">
+          <span v-if="movie?.imdbRating" class="hero__rating">
+            <span class="badge badge-accent">IMDb</span>
+            <span class="hero__rating-value">{{ movie.imdbRating.toFixed(1) }}</span>
+            <span class="hero__rating-count" v-if="movie.imdbId">({{ movie.imdbId }})</span>
+          </span>
+          <span v-if="movie?.releaseYear" class="hero__meta-item">• {{ movie.releaseYear }}</span>
+          <span v-if="movie?.runtime" class="hero__meta-item">• {{ formatRuntime(movie.runtime) }}</span>
+          <span v-if="genres?.length" class="hero__meta-item">| {{ genres.join(', ') }}</span>
+        </div>
+
         <p class="hero__overview" id="hero-overview">
-          {{ truncateText(movie?.overviewVi || movie?.overview || '', 180) }}
+          {{ truncateText(movie?.overview || movie?.overviewVi || '', 200) }}
+          <button
+            v-if="(movie?.overview || '').length > 200"
+            class="hero__see-more"
+            @click="$emit('showDetail')"
+          >
+            See more
+          </button>
         </p>
 
         <div class="hero__actions">
-          <NuxtLink
-            v-if="movie?.slug"
-            :to="`/movie/${movie.slug}`"
-            class="hero__btn hero__btn--primary"
-            id="btn-watch-now"
+          <button
+            v-if="movie?.trailerUrl"
+            class="btn btn-outline btn-lg"
+            id="btn-watch-trailer"
+            @click="$emit('watchTrailer')"
           >
-            Watch Now
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="5 3 19 12 5 21" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="20" rx="2" />
+              <polygon points="10 8 16 12 10 16" fill="currentColor" />
             </svg>
-          </NuxtLink>
+            Watch trailer
+          </button>
 
           <NuxtLink
             v-if="movie?.slug"
             :to="`/movie/${movie.slug}`"
-            class="hero__btn hero__btn--secondary"
-            id="btn-details"
+            class="btn btn-primary btn-lg"
+            id="btn-watch-now"
           >
-            Details
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="9 18 15 12 9 6" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21" />
             </svg>
+            Watch now
           </NuxtLink>
         </div>
       </div>
@@ -78,6 +97,12 @@ defineEmits<{
   showDetail: [];
 }>();
 
+function formatRuntime(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h > 0 ? `${h} hour ${m} minutes` : `${m} minutes`;
+}
+
 function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength).replace(/\s+\S*$/, '') + '...';
@@ -88,11 +113,10 @@ function truncateText(text: string, maxLength: number): string {
 .hero {
   position: relative;
   width: 100%;
-  min-height: 80vh;
+  min-height: 85vh;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
-  border-radius: 0 0 24px 24px;
 }
 
 .hero__backdrop {
@@ -113,10 +137,10 @@ function truncateText(text: string, maxLength: number): string {
   background: linear-gradient(
     to top,
     var(--color-bg-primary) 0%,
-    rgba(11, 14, 20, 0.75) 30%,
-    rgba(11, 14, 20, 0.3) 55%,
-    rgba(11, 14, 20, 0.15) 75%,
-    rgba(11, 14, 20, 0.25) 100%
+    rgba(5, 5, 5, 0.85) 25%,
+    rgba(5, 5, 5, 0.4) 50%,
+    rgba(5, 5, 5, 0.2) 75%,
+    rgba(5, 5, 5, 0.3) 100%
   );
 }
 
@@ -125,8 +149,8 @@ function truncateText(text: string, maxLength: number): string {
   inset: 0;
   background: linear-gradient(
     to right,
-    rgba(11, 14, 20, 0.7) 0%,
-    transparent 55%
+    rgba(5, 5, 5, 0.8) 0%,
+    transparent 60%
   );
 }
 
@@ -138,7 +162,7 @@ function truncateText(text: string, maxLength: number): string {
 }
 
 .hero__info {
-  max-width: 520px;
+  max-width: 600px;
 }
 
 .hero__title {
@@ -149,59 +173,67 @@ function truncateText(text: string, maxLength: number): string {
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5);
 }
 
+.hero__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.hero__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.hero__rating-value {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.hero__rating-count {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
 .hero__overview {
   font-size: var(--text-sm);
   line-height: 1.7;
   color: var(--color-text-secondary);
   margin-bottom: var(--space-8);
-  max-width: 420px;
+  max-width: 480px;
+}
+
+.hero__see-more {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .hero__actions {
   display: flex;
-  gap: var(--space-3);
+  gap: var(--space-4);
   flex-wrap: wrap;
 }
 
-.hero__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 24px;
-  border-radius: var(--radius-full);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.hero__btn--primary {
-  background: rgba(255, 255, 255, 0.95);
-  color: #111;
-}
-
-.hero__btn--primary:hover {
-  background: #fff;
-  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
-}
-
-.hero__btn--secondary {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.hero__btn--secondary:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
 @media (max-width: 768px) {
-  .hero { min-height: 55vh; }
+  .hero { min-height: 60vh; }
   .hero__info { max-width: 100%; }
   .hero__vignette {
-    background: linear-gradient(to right, rgba(11, 14, 20, 0.6) 0%, transparent 80%);
+    background: linear-gradient(to right, rgba(5,5,5,0.6) 0%, transparent 80%);
+  }
+  .hero__backdrop-img {
+    /* Prevent oversize image rendering on mobile */
+    image-rendering: auto;
   }
 }
 </style>

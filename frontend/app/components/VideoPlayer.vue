@@ -57,7 +57,7 @@ onMounted(async () => {
     fullscreenWeb: true,
     miniProgressBar: false,
     mutex: true,
-    theme: '#3b82f6',
+    theme: '#F5C518',
     lang: 'en',
     subtitleOffset: true,
     fastForward: false, // Disables sliding left/right to seek on mobile
@@ -418,7 +418,7 @@ onUnmounted(() => {
 :deep(.art-ep-season-title) {
   padding: 8px 20px;
   font-size: 14px;
-  color: rgba(59, 130, 246, 1);
+  color: rgba(245, 197, 24, 1);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -444,9 +444,9 @@ onUnmounted(() => {
 }
 
 :deep(.art-episode-item.is-active) {
-  background: rgba(59, 130, 246, 0.1);
-  color: rgba(59, 130, 246, 1);
-  border-left: 3px solid rgba(59, 130, 246, 1);
+  background: rgba(245, 197, 24, 0.1);
+  color: rgba(245, 197, 24, 1);
+  border-left: 3px solid rgba(245, 197, 24, 1);
 }
 
 :deep(.art-ep-num) {
