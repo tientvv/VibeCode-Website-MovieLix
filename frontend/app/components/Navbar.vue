@@ -408,9 +408,7 @@ onMounted(() => {
   display: none;
   flex-direction: column;
   padding: var(--space-4);
-  background: rgba(5, 5, 5, 0.95);
-  backdrop-filter: blur(16px);
-  border-top: 1px solid var(--color-border);
+  background: rgb(5, 5, 5);
 }
 
 .navbar__mobile-link {
