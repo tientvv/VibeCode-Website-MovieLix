@@ -195,8 +195,9 @@ onMounted(async () => {
           
           const epEl = target.closest('.art-episode-item');
           if (epEl) {
-            const epId = epEl.getAttribute('data-ep-id');
-            if (epId) {
+            const epIdStr = epEl.getAttribute('data-ep-id');
+            if (epIdStr) {
+              const epId = parseInt(epIdStr, 10);
               const selectedEp = props.episodes?.find((ep: any) => ep.id === epId);
               if (selectedEp && selectedEp.id !== props.currentEpisode?.id) {
                 emit('episode-change', selectedEp);
@@ -282,7 +283,7 @@ watch(
     const { $player } = player.template;
     const items = $player.querySelectorAll('.art-episode-item');
     items.forEach(el => {
-      if (el.getAttribute('data-ep-id') === newEp.id) {
+      if (el.getAttribute('data-ep-id') === newEp.id.toString()) {
         el.classList.add('is-active');
         const info = el.querySelector('.art-ep-info');
         if (info && !info.querySelector('.art-ep-playing')) {
