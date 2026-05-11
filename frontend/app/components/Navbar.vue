@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar" :class="{ 'navbar--scrolled': isScrolled }">
+  <nav class="navbar" :class="{ 'navbar--scrolled': isScrolled, 'navbar--home': isHomePage }">
     <div class="navbar__inner container">
       <NuxtLink to="/" class="navbar__logo" id="nav-logo">
         <img src="/logo.png" alt="MovieLix" class="navbar__logo-img" />
@@ -134,6 +134,9 @@ const searchQuery = ref('');
 const searchInput = ref<HTMLInputElement | null>(null);
 
 const auth = useAuth();
+const route = useRoute();
+
+const isHomePage = computed(() => route.path === '/');
 
 function toggleSearch() {
   searchOpen.value = !searchOpen.value;
@@ -175,10 +178,15 @@ onMounted(() => {
   width: 100%;
   height: var(--navbar-height);
   z-index: 1000;
-  background: transparent;
+  background: rgba(5, 5, 5, 0.95);
   transition: background var(--transition-base), box-shadow var(--transition-base);
 }
 
+.navbar--home {
+  background: transparent;
+}
+
+.navbar--home.navbar--scrolled,
 .navbar--scrolled {
   background: rgba(5, 5, 5, 0.95);
   box-shadow: 0 1px 0 var(--color-border);
@@ -516,6 +524,9 @@ onMounted(() => {
   }
   .navbar__mobile-menu {
     display: flex;
+  }
+  .navbar--home {
+    background: linear-gradient(to bottom, rgba(5, 5, 5, 0.8) 0%, transparent 100%);
   }
   .navbar__user-menu {
     display: none;
