@@ -174,107 +174,127 @@
         <p class="text-sm text-muted mb-4" v-if="isNew">Please save the TV Series first before adding episodes.</p>
 
         <div v-else>
-          <!-- Existing Episodes -->
+          <!-- Episode Count & Controls -->
+          <div class="admin-edit__episode-controls">
+            <span class="text-sm text-muted">{{ episodes.length }} episode(s)</span>
+            <div style="display: flex; gap: 8px">
+              <button type="button" class="btn btn-outline btn-sm" @click="expandAllEpisodes">Expand All</button>
+              <button type="button" class="btn btn-outline btn-sm" @click="collapseAllEpisodes">Collapse All</button>
+            </div>
+          </div>
+
+          <!-- Existing Episodes (Collapsible) -->
           <div v-for="(ep, idx) in episodes" :key="idx" class="admin-edit__episode-block">
             <div
-              class="admin-edit__row"
-              style="align-items: center; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 8px"
+              class="admin-edit__episode-header"
+              :class="{ 'admin-edit__episode-header--open': expandedEpisodes.has(ep.id) }"
+              @click="toggleEpisode(ep.id)"
             >
-              <div style="font-weight: bold; width: 80px">S{{ ep.season }} E{{ ep.episode }}</div>
-              <div style="flex: 1">{{ ep.title || 'No Title' }}</div>
-              <button type="button" class="btn btn-ghost btn-sm text-error" @click="removeExistingEpisode(ep.id, idx)">
+              <div class="admin-edit__episode-header-left">
+                <span class="admin-edit__episode-chevron" :class="{ 'admin-edit__episode-chevron--open': expandedEpisodes.has(ep.id) }">▶</span>
+                <span style="font-weight: bold; min-width: 70px">S{{ ep.season }} E{{ ep.episode }}</span>
+                <span style="opacity: 0.7">{{ ep.title || 'No Title' }}</span>
+                <span class="admin-edit__episode-badges">
+                  <span v-if="ep.videoSources?.length" class="admin-edit__badge admin-edit__badge--video">🎬 {{ ep.videoSources.length }}</span>
+                  <span v-if="ep.subtitles?.length" class="admin-edit__badge admin-edit__badge--sub">📝 {{ ep.subtitles.length }}</span>
+                </span>
+              </div>
+              <button type="button" class="btn btn-ghost btn-sm text-error" @click.stop="removeExistingEpisode(ep.id, idx)">
                 Delete
               </button>
             </div>
 
-            <div style="padding-left: 20px; border-left: 2px solid var(--color-border); margin: 8px 0 16px 10px">
-              <h4 style="margin: 8px 0; font-size: 0.9em; opacity: 0.8">Episode Video Sources</h4>
-              <div v-for="(vs, vidx) in ep.videoSources" :key="vidx" class="admin-edit__torrent-row">
-                <select v-model="vs.quality" class="select" style="max-width: 120px">
-                  <option value="HD_720">720p</option>
-                  <option value="FHD_1080">1080p</option>
-                  <option value="QHD_2K">2K</option>
-                </select>
-                <input
-                  v-model="vs.driveUrl"
-                  class="input"
-                  placeholder="https://drive.google.com/file/d/.../view"
-                  style="flex: 1"
-                />
-                <button
-                  type="button"
-                  class="btn btn-ghost btn-sm"
-                  @click="removeEpisodeVideoSource(ep, vs, Number(vidx))"
-                >
-                  ✕
-                </button>
-              </div>
-              <button
-                type="button"
-                class="btn btn-outline btn-sm"
-                @click="addEpisodeVideoSource(ep)"
-                style="margin-top: 8px"
-              >
-                + Add Episode Video Source
-              </button>
-            </div>
-
-            <!-- Episode Subtitles -->
-            <div style="padding-left: 20px; border-left: 2px solid var(--color-border); margin: 8px 0 16px 10px">
-              <h4 style="margin: 8px 0; font-size: 0.9em; opacity: 0.8">Episode Subtitles</h4>
-              <div
-                v-for="(sub, sidx) in ep.subtitles"
-                :key="'sub' + sidx"
-                class="admin-edit__torrent-row"
-                style="flex-wrap: wrap"
-              >
-                <select v-model="sub.language" class="select" style="max-width: 120px">
-                  <option value="vi">Tiếng Việt</option>
-                  <option value="en">English</option>
-                </select>
-                <!-- Show saved status -->
-                <div
-                  v-if="sub._saved && sub.srtContent?.startsWith('/api/')"
-                  style="flex: 1; display: flex; align-items: center; gap: 8px"
-                >
-                  <span
-                    style="
-                      background: #22c55e;
-                      color: #000;
-                      padding: 2px 10px;
-                      border-radius: 6px;
-                      font-size: 0.8em;
-                      font-weight: 600;
-                    "
-                    >✅ Đã lưu</span
+            <!-- Collapsible Content -->
+            <div v-show="expandedEpisodes.has(ep.id)" class="admin-edit__episode-content">
+              <div style="padding-left: 20px; border-left: 2px solid var(--color-border); margin: 8px 0 16px 10px">
+                <h4 style="margin: 8px 0; font-size: 0.9em; opacity: 0.8">Episode Video Sources</h4>
+                <div v-for="(vs, vidx) in ep.videoSources" :key="vidx" class="admin-edit__torrent-row">
+                  <select v-model="vs.quality" class="select" style="max-width: 120px">
+                    <option value="HD_720">720p</option>
+                    <option value="FHD_1080">1080p</option>
+                    <option value="QHD_2K">2K</option>
+                  </select>
+                  <input
+                    v-model="vs.driveUrl"
+                    class="input"
+                    placeholder="https://drive.google.com/file/d/.../view"
+                    style="flex: 1"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-sm"
+                    @click="removeEpisodeVideoSource(ep, vs, Number(vidx))"
                   >
-                  <code style="font-size: 0.8em; color: var(--color-text-muted); word-break: break-all">{{
-                    sub.srtContent
-                  }}</code>
+                    ✕
+                  </button>
                 </div>
-                <input
-                  v-if="!sub._saved || !sub.srtContent?.startsWith('/api/')"
-                  v-model="sub.srtContent"
-                  class="input"
-                  placeholder="Dán Google Drive URL hoặc nội dung .srt/.ass vào đây..."
-                  style="flex: 1"
-                />
                 <button
                   type="button"
-                  class="btn btn-ghost btn-sm"
-                  @click="removeEpisodeSubtitle(ep, sub, Number(sidx))"
+                  class="btn btn-outline btn-sm"
+                  @click="addEpisodeVideoSource(ep)"
+                  style="margin-top: 8px"
                 >
-                  ✕
+                  + Add Episode Video Source
                 </button>
               </div>
-              <button
-                type="button"
-                class="btn btn-outline btn-sm"
-                @click="addEpisodeSubtitle(ep)"
-                style="margin-top: 8px"
-              >
-                + Add Episode Subtitle
-              </button>
+
+              <!-- Episode Subtitles -->
+              <div style="padding-left: 20px; border-left: 2px solid var(--color-border); margin: 8px 0 16px 10px">
+                <h4 style="margin: 8px 0; font-size: 0.9em; opacity: 0.8">Episode Subtitles</h4>
+                <div
+                  v-for="(sub, sidx) in ep.subtitles"
+                  :key="'sub' + sidx"
+                  class="admin-edit__torrent-row"
+                  style="flex-wrap: wrap"
+                >
+                  <select v-model="sub.language" class="select" style="max-width: 120px">
+                    <option value="vi">Tiếng Việt</option>
+                    <option value="en">English</option>
+                  </select>
+                  <!-- Show saved status -->
+                  <div
+                    v-if="sub._saved && sub.srtContent?.startsWith('/api/')"
+                    style="flex: 1; display: flex; align-items: center; gap: 8px"
+                  >
+                    <span
+                      style="
+                        background: #22c55e;
+                        color: #000;
+                        padding: 2px 10px;
+                        border-radius: 6px;
+                        font-size: 0.8em;
+                        font-weight: 600;
+                      "
+                      >✅ Đã lưu</span
+                    >
+                    <code style="font-size: 0.8em; color: var(--color-text-muted); word-break: break-all">{{
+                      sub.srtContent
+                    }}</code>
+                  </div>
+                  <input
+                    v-if="!sub._saved || !sub.srtContent?.startsWith('/api/')"
+                    v-model="sub.srtContent"
+                    class="input"
+                    placeholder="Dán Google Drive URL hoặc nội dung .srt/.ass vào đây..."
+                    style="flex: 1"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-sm"
+                    @click="removeEpisodeSubtitle(ep, sub, Number(sidx))"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-outline btn-sm"
+                  @click="addEpisodeSubtitle(ep)"
+                  style="margin-top: 8px"
+                >
+                  + Add Episode Subtitle
+                </button>
+              </div>
             </div>
           </div>
 
@@ -356,6 +376,22 @@ const subtitles = ref<Array<{ language: string; srtContent: string }>>([]);
 // Episodes State & Logic
 const episodes = ref<Array<any>>([]);
 const newEp = reactive({ season: 1, episode: 1, title: '', runtime: '' as any });
+const expandedEpisodes = ref<Set<number>>(new Set());
+
+function toggleEpisode(id: number) {
+  const s = new Set(expandedEpisodes.value);
+  if (s.has(id)) s.delete(id);
+  else s.add(id);
+  expandedEpisodes.value = s;
+}
+
+function expandAllEpisodes() {
+  expandedEpisodes.value = new Set(episodes.value.map((ep: any) => ep.id));
+}
+
+function collapseAllEpisodes() {
+  expandedEpisodes.value = new Set();
+}
 
 function getToken() {
   return localStorage.getItem('admin_token') || '';
@@ -773,5 +809,76 @@ textarea.input {
   border-radius: var(--radius-md);
   color: var(--color-error);
   font-size: var(--text-sm);
+}
+
+/* Episode Accordion */
+.admin-edit__episode-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+}
+.admin-edit__episode-block {
+  margin-bottom: 4px;
+}
+.admin-edit__episode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+.admin-edit__episode-header:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.admin-edit__episode-header--open {
+  border-radius: 8px 8px 0 0;
+  background: rgba(255, 255, 255, 0.05);
+}
+.admin-edit__episode-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+.admin-edit__episode-chevron {
+  font-size: 0.7em;
+  transition: transform 0.2s ease;
+  opacity: 0.5;
+}
+.admin-edit__episode-chevron--open {
+  transform: rotate(90deg);
+}
+.admin-edit__episode-badges {
+  display: flex;
+  gap: 6px;
+  margin-left: 8px;
+}
+.admin-edit__badge {
+  font-size: 0.75em;
+  padding: 1px 8px;
+  border-radius: 20px;
+  opacity: 0.7;
+}
+.admin-edit__badge--video {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93bbfd;
+}
+.admin-edit__badge--sub {
+  background: rgba(52, 211, 153, 0.2);
+  color: #6ee7b7;
+}
+.admin-edit__episode-content {
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 8px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 </style>
