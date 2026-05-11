@@ -421,8 +421,15 @@ onMounted(() => {
 .navbar__mobile-menu {
   display: none;
   flex-direction: column;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
   padding: var(--space-4);
   background: rgb(5, 5, 5);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
 }
 
 .navbar__mobile-link {
