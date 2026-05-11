@@ -12,14 +12,22 @@ export default defineEventHandler(async (event) => {
     where: { username },
   });
 
-  if (user && (await bcrypt.compare(password, user.password))) {
-    const token = jwt.sign({ role: user.role, username: user.username }, config.jwtSecret, { expiresIn: '24h' });
-
-    return { token, expiresIn: 86400, user: { username: user.username, role: user.role } };
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Invalid credentials',
+    });
   }
 
-  throw createError({
-    statusCode: 401,
-    statusMessage: 'Invalid credentials',
-  });
+  // Only ADMIN role can access the admin panel
+  if (user.role !== 'ADMIN') {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'Access denied. Admin privileges required.',
+    });
+  }
+
+  const token = jwt.sign({ role: user.role, username: user.username }, config.jwtSecret as string, { expiresIn: '24h' });
+
+  return { token, expiresIn: 86400, user: { username: user.username, role: user.role } };
 });

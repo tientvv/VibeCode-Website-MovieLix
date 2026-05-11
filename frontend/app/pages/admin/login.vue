@@ -72,7 +72,12 @@ async function handleLogin() {
     localStorage.setItem('admin_token', res.token);
     navigateTo('/admin');
   } catch (err: any) {
-    error.value = 'Invalid username or password';
+    const statusCode = err?.response?.status || err?.statusCode;
+    if (statusCode === 403) {
+      error.value = 'Access denied. Admin privileges required.';
+    } else {
+      error.value = 'Invalid username or password';
+    }
   } finally {
     isLoading.value = false;
   }
