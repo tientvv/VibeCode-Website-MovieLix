@@ -31,7 +31,7 @@ const playerContainer = ref<HTMLElement | null>(null);
 let player: Artplayer | null = null;
 
 onMounted(async () => {
-  console.log('[VideoPlayer] Component mounted, checking container...', !!playerContainer.value);
+
   if (!playerContainer.value) return;
 
   const ArtplayerModule = await import('artplayer');
@@ -102,7 +102,7 @@ onMounted(async () => {
   if (props.isHls) {
     options.customType = {
       m3u8: (videoEl: HTMLVideoElement, url: string) => {
-        console.log('[VideoPlayer] Loading HLS source:', url);
+
         if (Hls.isSupported()) {
           const hls = new Hls({
             startPosition: 0,
@@ -117,17 +117,16 @@ onMounted(async () => {
           hls.loadSource(url);
           hls.attachMedia(videoEl);
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            console.log('[VideoPlayer] HLS Manifest parsed, attempting to play');
-            videoEl.play().catch((err) => console.error('Play error after manifest:', err));
+            videoEl.play().catch(() => {});
           });
           hls.on(Hls.Events.ERROR, (_event: any, data: any) => {
-            console.error('[HLS] Error:', data.type, data.details);
+
             if (data.fatal) {
               if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-                console.log('[HLS] Fatal network error encountered, trying to recover');
+
                 hls.startLoad();
               } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-                console.log('[HLS] Fatal media error encountered, trying to recover');
+
                 hls.recoverMediaError();
               } else {
                 hls.destroy();
@@ -233,26 +232,26 @@ onMounted(async () => {
     ];
   }
 
-  console.log('[VideoPlayer] Initializing Artplayer with options:', { url: options.url, type: options.type });
+
   try {
     player = new Artplayer(options);
-    console.log('[VideoPlayer] Artplayer instance created');
+
   } catch (initErr) {
-    console.error('[VideoPlayer] Failed to create Artplayer instance:', initErr);
+
     return;
   }
 
   player.on('ready', () => {
-    console.log('[VideoPlayer] Ready, attempting play...');
+
     player?.play().catch(() => {});
   });
 
   player.on('error', (err: any) => {
-    console.error('[VideoPlayer] Error:', err);
+
   });
 
   player.on('error', (err: any) => {
-    console.error('[VideoPlayer] Error:', err);
+
   });
 });
 
@@ -261,7 +260,7 @@ watch(
   () => props.src,
   (newSrc) => {
     if (!player || !newSrc) return;
-    console.log('[VideoPlayer] Src changed, switching to:', newSrc);
+
     player
       .switchUrl(newSrc)
       .then(() => {
