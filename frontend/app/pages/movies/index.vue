@@ -163,9 +163,10 @@ watch(sortParam, (newVal) => {
   color: var(--color-text-muted);
 }
 
-@media (max-width: 768px) {
-  .movies-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+@media (max-width: 1024px) {
+  .movies-grid,
+  .skeleton-grid {
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--space-4);
   }
 }
