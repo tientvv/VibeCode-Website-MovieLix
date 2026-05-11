@@ -40,7 +40,7 @@ onMounted(async () => {
     volume: 0.7,
     autoplay: true,
     autoSize: false,
-    autoMini: true,
+    autoMini: false,
     loop: false,
     flip: true,
     playbackRate: true,

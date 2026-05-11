@@ -12,17 +12,14 @@ function base64UrlEncode(buffer: ArrayBuffer | Uint8Array): string {
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
-  return btoa(binary)
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 // Lấy OAuth Token từ Google thông qua JWT (Web Crypto)
 async function getGoogleAuthToken(email: string, privateKey: string): Promise<string> {
   const header = {
     alg: 'RS256',
-    typ: 'JWT'
+    typ: 'JWT',
   };
 
   const now = Math.floor(Date.now() / 1000);
@@ -31,7 +28,7 @@ async function getGoogleAuthToken(email: string, privateKey: string): Promise<st
     scope: 'https://www.googleapis.com/auth/drive.readonly',
     aud: 'https://oauth2.googleapis.com/token',
     exp: now + 3600,
-    iat: now
+    iat: now,
   };
 
   const encodedHeader = btoa(JSON.stringify(header));
@@ -39,14 +36,14 @@ async function getGoogleAuthToken(email: string, privateKey: string): Promise<st
   const unsignedToken = `${encodedHeader}.${encodedClaim}`;
 
   // Chuẩn bị Private Key (Import)
-  const pemHeader = "-----BEGIN PRIVATE KEY-----";
-  const pemFooter = "-----END PRIVATE KEY-----";
-  
+  const pemHeader = '-----BEGIN PRIVATE KEY-----';
+  const pemFooter = '-----END PRIVATE KEY-----';
+
   // Clean format
   let cleanKey = privateKey.replace(/\\n/g, '\n');
   if (!cleanKey.includes(pemHeader)) cleanKey = `${pemHeader}\n${cleanKey}\n${pemFooter}`;
-  
-  const pemContents = cleanKey.replace(pemHeader, "").replace(pemFooter, "").replace(/\s/g, "");
+
+  const pemContents = cleanKey.replace(pemHeader, '').replace(pemFooter, '').replace(/\s/g, '');
   const binaryDerString = atob(pemContents);
   const binaryDer = new Uint8Array(binaryDerString.length);
   for (let i = 0; i < binaryDerString.length; i++) {
@@ -54,25 +51,21 @@ async function getGoogleAuthToken(email: string, privateKey: string): Promise<st
   }
 
   const cryptoKey = await crypto.subtle.importKey(
-    "pkcs8",
+    'pkcs8',
     binaryDer.buffer,
-    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
     false,
-    ["sign"]
+    ['sign'],
   );
 
-  const signature = await crypto.subtle.sign(
-    "RSASSA-PKCS1-v1_5",
-    cryptoKey,
-    new TextEncoder().encode(unsignedToken)
-  );
+  const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', cryptoKey, new TextEncoder().encode(unsignedToken));
 
   const signedToken = `${unsignedToken}.${base64UrlEncode(signature)}`;
 
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${signedToken}`
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${signedToken}`,
   });
 
   const data: any = await response.json();
@@ -93,7 +86,7 @@ export default {
           'Access-Control-Allow-Headers': 'Content-Type, Range, Authorization',
           'Access-Control-Expose-Headers': 'Content-Range, Accept-Ranges, Content-Length, Content-Type',
           'Access-Control-Max-Age': '86400',
-        }
+        },
       });
     }
 
@@ -140,7 +133,6 @@ export default {
         statusText: response.statusText,
         headers: resHeaders,
       });
-
     } catch (err: any) {
       return new Response(`Worker Error: ${err.message}`, { status: 500 });
     }
