@@ -2,8 +2,7 @@
   <div class="admin-login" id="admin-login-page">
     <div class="admin-login__card">
       <div class="admin-login__header">
-        <span class="navbar__logo-badge">MOVIE</span>
-        <span class="navbar__logo-text" style="font-family: var(--font-display); font-weight: 800; font-size: var(--text-xl);">LIX</span>
+        <img src="/logo.png" alt="MovieLix" style="height: 40px; width: auto; object-fit: contain;" />
       </div>
       <h1 class="admin-login__title">Admin Panel</h1>
       <p class="admin-login__subtitle">Sign in to manage movies and content</p>

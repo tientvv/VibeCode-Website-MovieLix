@@ -32,10 +32,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (search) {
-    where.OR = [
-      { title: { contains: search } },
-      { titleVi: { contains: search } },
-    ];
+    where.OR = [{ title: { contains: search } }, { titleVi: { contains: search } }];
   }
 
   try {
@@ -83,13 +80,9 @@ export default defineEventHandler(async (event) => {
       },
     };
   } catch (error: any) {
-    return {
-      error: true,
-      message: error.message || 'Unknown error',
-      name: error.name,
-      code: error.code,
-      meta: error.meta,
-      stack: error.stack
-    };
+    throw createError({
+      statusCode: 500,
+      statusMessage: error.message || 'Internal Server Error',
+    });
   }
 });

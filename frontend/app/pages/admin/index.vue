@@ -49,12 +49,7 @@
             <tr v-for="movie in movies" :key="movie.id">
               <td>
                 <div class="admin-table__movie-cell">
-                  <img
-                    v-if="movie.posterUrl"
-                    :src="movie.posterUrl"
-                    :alt="movie.title"
-                    class="admin-table__poster"
-                  />
+                  <img v-if="movie.posterUrl" :src="movie.posterUrl" :alt="movie.title" class="admin-table__poster" />
                   <div>
                     <strong>{{ movie.titleVi || movie.title }}</strong>
                     <small v-if="movie.titleVi" class="text-muted">{{ movie.title }}</small>
@@ -68,26 +63,19 @@
               </td>
               <td>{{ movie.videoSources?.length || 0 }}</td>
               <td>
-                <span
-                  class="badge"
-                  :class="movie.status === 'PUBLISHED' ? 'badge-accent' : 'badge-dark'"
-                >
+                <span class="badge" :class="movie.status === 'PUBLISHED' ? 'badge-accent' : 'badge-dark'">
                   {{ movie.status }}
                 </span>
               </td>
               <td>
                 <div class="admin-table__actions">
-                  <NuxtLink :to="`/admin/movies/${movie.id}`" class="btn btn-sm btn-outline">
-                    Edit
-                  </NuxtLink>
-                  <button class="btn btn-sm btn-ghost admin-table__delete" @click="deleteMovie(movie)">
-                    🗑
-                  </button>
+                  <NuxtLink :to="`/admin/movies/${movie.id}`" class="btn btn-sm btn-outline"> Edit </NuxtLink>
+                  <button class="btn btn-sm btn-ghost admin-table__delete" @click="deleteMovie(movie)">🗑</button>
                 </div>
               </td>
             </tr>
             <tr v-if="!movies.length">
-              <td colspan="6" class="text-muted" style="text-align: center; padding: var(--space-8);">
+              <td colspan="6" class="text-muted" style="text-align: center; padding: var(--space-8)">
                 No movies yet. Add your first movie!
               </td>
             </tr>
@@ -99,33 +87,23 @@
 </template>
 
 <script setup lang="ts">
+import type { Movie } from '~/types/movie';
+
 definePageMeta({ layout: false });
 useHead({ title: 'Admin Dashboard — MovieLix' });
 
-const movies = ref<any[]>([]);
+const { authHeaders, requireAuth, logout } = useAdminAuth();
+const movies = ref<Movie[]>([]);
 
-const publishedCount = computed(() => movies.value.filter(m => m.status === 'PUBLISHED').length);
-const draftCount = computed(() => movies.value.filter(m => m.status === 'DRAFT').length);
-
-function getToken() {
-  return localStorage.getItem('admin_token');
-}
-
-function logout() {
-  localStorage.removeItem('admin_token');
-  navigateTo('/admin/login');
-}
+const publishedCount = computed(() => movies.value.filter((m) => m.status === 'PUBLISHED').length);
+const draftCount = computed(() => movies.value.filter((m) => m.status === 'DRAFT').length);
 
 onMounted(async () => {
-  const token = getToken();
-  if (!token) {
-    navigateTo('/admin/login');
-    return;
-  }
+  if (!requireAuth()) return;
 
   try {
-    const data = await $fetch<any[]>('/api/admin/movies', {
-      headers: { Authorization: `Bearer ${token}` },
+    const data = await $fetch<Movie[]>('/api/admin/movies', {
+      headers: authHeaders(),
     });
     movies.value = data;
   } catch {
@@ -133,16 +111,16 @@ onMounted(async () => {
   }
 });
 
-async function deleteMovie(movie: any) {
+async function deleteMovie(movie: Movie) {
   if (!confirm(`Delete "${movie.titleVi || movie.title}"? This cannot be undone.`)) return;
 
   try {
     await $fetch('/api/admin/movies', {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${getToken()}` },
+      headers: authHeaders(),
       body: { id: movie.id },
     });
-    movies.value = movies.value.filter(m => m.id !== movie.id);
+    movies.value = movies.value.filter((m) => m.id !== movie.id);
   } catch (err: any) {
     alert('Failed to delete: ' + (err.message || 'Unknown error'));
   }

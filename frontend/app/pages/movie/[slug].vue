@@ -94,7 +94,7 @@
           <h3 class="movie-detail__season-heading">Season {{ season }}</h3>
           <div class="movie-detail__episodes-grid">
             <button
-              v-for="ep in movie.episodes.filter((e: any) => e.season === season)"
+              v-for="ep in (movie?.episodes ?? []).filter((e: any) => e.season === season)"
               :key="ep.id"
               class="movie-detail__episode-card"
               :class="{ 'is-active': selectedEpisode?.id === ep.id }"
@@ -117,19 +117,21 @@
 </template>
 
 <script setup lang="ts">
+import type { Movie, Episode, VideoSource } from '~/types/movie';
+import { QUALITY_MAP } from '~/types/movie';
+
 const route = useRoute();
 const config = useRuntimeConfig();
 
-const movie = ref<any>(null);
+const movie = ref<Movie | null>(null);
 const streamUrl = ref('');
 const selectedQuality = ref('FHD_1080');
 const subtitleTracks = ref<any[]>([]);
 
-// TV Show Logic
 const selectedSeason = ref<number>(1);
-const selectedEpisode = ref<any>(null);
+const selectedEpisode = ref<Episode | null>(null);
 
-const activeVideoSources = computed(() => {
+const activeVideoSources = computed<VideoSource[]>(() => {
   if (movie.value?.type === 'TV_SERIES') {
     return selectedEpisode.value?.videoSources || [];
   }
@@ -146,20 +148,15 @@ const activeSubtitles = computed(() => {
 const availableSeasons = computed(() => {
   if (!movie.value?.episodes) return [];
   const seasons = new Set<number>();
-  movie.value.episodes.forEach((e: any) => seasons.add(e.season));
+  movie.value.episodes.forEach((e) => seasons.add(e.season));
   return Array.from(seasons).sort((a, b) => a - b);
 });
 
 const availableQualities = computed(() => {
   if (!activeVideoSources.value?.length) return [];
-  const qualityMap: Record<string, string> = {
-    HD_720: '720p',
-    FHD_1080: '1080p',
-    QHD_2K: '2K',
-  };
-  return activeVideoSources.value.map((vs: any) => ({
+  return activeVideoSources.value.map((vs) => ({
     value: vs.quality,
-    label: qualityMap[vs.quality] || vs.quality,
+    label: QUALITY_MAP[vs.quality] || vs.quality,
   }));
 });
 
@@ -176,7 +173,7 @@ function selectEpisode(ep: any) {
     !activeVideoSources.value.some((vs: any) => vs.quality === selectedQuality.value) &&
     activeVideoSources.value.length
   ) {
-    selectedQuality.value = activeVideoSources.value[0].quality;
+    selectedQuality.value = activeVideoSources.value[0]!.quality;
   }
   streamUrl.value = '';
 }
@@ -239,7 +236,7 @@ onMounted(async () => {
     }
 
     if (activeVideoSources.value.length) {
-      selectedQuality.value = activeVideoSources.value[0].quality;
+      selectedQuality.value = activeVideoSources.value[0]!.quality;
     }
   } catch (err) {
     console.error('Failed to load movie:', err);

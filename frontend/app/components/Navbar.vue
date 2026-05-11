@@ -2,8 +2,7 @@
   <nav class="navbar" :class="{ 'navbar--scrolled': isScrolled }">
     <div class="navbar__inner container">
       <NuxtLink to="/" class="navbar__logo" id="nav-logo">
-        <span class="navbar__logo-badge">MOVIE</span>
-        <span class="navbar__logo-text">LIX</span>
+        <img src="/logo.png" alt="MovieLix" class="navbar__logo-img" />
       </NuxtLink>
 
       <div class="navbar__links" id="nav-links">
@@ -178,18 +177,15 @@ onMounted(() => {
   color: var(--color-text-primary);
 }
 
-.navbar__logo-badge {
-  background: var(--color-accent);
-  color: var(--color-text-inverse);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-  letter-spacing: 0.05em;
+.navbar__logo-img {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  transition: opacity var(--transition-fast);
 }
 
-.navbar__logo-text {
-  color: var(--color-text-primary);
-  margin-left: 4px;
+.navbar__logo:hover .navbar__logo-img {
+  opacity: 0.8;
 }
 
 /* Nav links */
