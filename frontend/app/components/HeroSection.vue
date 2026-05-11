@@ -139,8 +139,8 @@ function truncateText(text: string, maxLength: number): string {
     var(--color-bg-primary) 0%,
     rgba(5, 5, 5, 0.85) 25%,
     rgba(5, 5, 5, 0.4) 50%,
-    rgba(5, 5, 5, 0.1) 75%,
-    transparent 100%
+    rgba(5, 5, 5, 0.15) 70%,
+    rgba(5, 5, 5, 0.35) 100%
   );
 }
 
