@@ -510,7 +510,7 @@ onMounted(() => {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .navbar {
+  .navbar:not(.navbar--home) {
     background: linear-gradient(to bottom, rgba(5, 5, 5, 0.8) 0%, transparent 100%);
   }
   .navbar__links {
@@ -524,9 +524,6 @@ onMounted(() => {
   }
   .navbar__mobile-menu {
     display: flex;
-  }
-  .navbar--home {
-    background: linear-gradient(to bottom, rgba(5, 5, 5, 0.8) 0%, transparent 100%);
   }
   .navbar__user-menu {
     display: none;
