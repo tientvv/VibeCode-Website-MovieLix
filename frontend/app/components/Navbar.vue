@@ -224,7 +224,7 @@ onMounted(() => {
 }
 
 .navbar__logo-img {
-  height: 160px;
+  height: 60px;
   width: auto;
   object-fit: contain;
   transition: opacity var(--transition-fast);
