@@ -54,7 +54,8 @@ onMounted(async () => {
     mutex: true,
     theme: '#F5C518',
     lang: 'en',
-    subtitleOffset: true, // Dynamically calculates gap above control bar and black bars
+    subtitleOffset: true,
+    fastForward: false, // Disables sliding left/right to seek on mobile
     moreVideoAttr: {
       crossOrigin: 'anonymous',
       playsInline: true,
