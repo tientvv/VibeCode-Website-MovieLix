@@ -87,11 +87,12 @@ async function handleLogin() {
 
 <style scoped>
 .user-login {
-  min-height: 70vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-4);
+  background: var(--color-bg-primary);
   background-image: radial-gradient(circle at center, rgba(245, 197, 24, 0.05) 0%, transparent 70%);
 }
 
