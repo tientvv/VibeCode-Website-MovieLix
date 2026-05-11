@@ -21,7 +21,7 @@
         <button
           class="navbar__mobile-toggle"
           id="nav-mobile-btn"
-          @click="mobileOpen = !mobileOpen"
+          @click.stop="mobileOpen = !mobileOpen"
           aria-label="Toggle menu"
         >
           <svg
