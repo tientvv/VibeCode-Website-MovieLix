@@ -99,7 +99,7 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   padding: var(--space-4);
-  background-image: radial-gradient(circle at center, rgba(245, 197, 24, 0.05) 0%, transparent 70%);
+  background-image: radial-gradient(circle at center, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
 }
 
 .user-login__card {

@@ -89,7 +89,7 @@ const qualityLabel = computed(() => {
 .movie-card__poster {
   position: relative;
   aspect-ratio: 2/3;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   overflow: hidden;
   background: var(--color-bg-tertiary);
   border: 2px solid transparent;
@@ -134,7 +134,7 @@ const qualityLabel = computed(() => {
   width: 48px;
   height: 48px;
   border-radius: var(--radius-full);
-  background: rgba(245, 197, 24, 0.9);
+  background: rgba(59, 130, 246, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
