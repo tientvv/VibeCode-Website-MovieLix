@@ -59,11 +59,6 @@ const password = ref('');
 const error = ref('');
 const isLoading = ref(false);
 
-// If already logged in, redirect immediately (no flash)
-if (auth.isLoggedIn.value) {
-  navigateTo('/');
-}
-
 async function handleLogin() {
   error.value = '';
   isLoading.value = true;

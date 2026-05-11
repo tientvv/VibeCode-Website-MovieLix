@@ -54,17 +54,12 @@ definePageMeta({ layout: false });
 
 useHead({ title: 'Admin Login — MovieLix' });
 
-const { isAdminLoggedIn, login: adminLogin } = useAdminAuth();
+const { login: adminLogin } = useAdminAuth();
 
 const username = ref('');
 const password = ref('');
 const error = ref('');
 const isLoading = ref(false);
-
-// Redirect if already logged in
-if (isAdminLoggedIn.value) {
-  navigateTo('/admin');
-}
 
 async function handleLogin() {
   error.value = '';
