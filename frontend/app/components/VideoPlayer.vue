@@ -20,7 +20,12 @@ const props = defineProps<{
   subtitles?: SubtitleTrack[];
   isHls?: boolean;
   playerId?: string;
+  episodes?: any[];
+  currentEpisode?: any;
+  isTvSeries?: boolean;
 }>();
+
+const emit = defineEmits(['episode-change']);
 
 const playerContainer = ref<HTMLElement | null>(null);
 let player: Artplayer | null = null;
@@ -140,6 +145,70 @@ onMounted(async () => {
     options.type = 'm3u8';
   }
 
+  // --- Episode Selector Feature ---
+  if (props.isTvSeries && props.episodes?.length) {
+    const seasons = new Map<number, any[]>();
+    for (const ep of props.episodes) {
+      if (!seasons.has(ep.season)) seasons.set(ep.season, []);
+      seasons.get(ep.season)!.push(ep);
+    }
+
+    const seasonNums = Array.from(seasons.keys()).sort((a, b) => a - b);
+    
+    let episodesHtml = '';
+    for (const s of seasonNums) {
+      episodesHtml += `<div class="art-ep-season-title">Season ${s}</div>`;
+      const eps = seasons.get(s)!.sort((a, b) => a.episode - b.episode);
+      for (const ep of eps) {
+        const isActive = props.currentEpisode?.id === ep.id;
+        episodesHtml += `
+          <button class="art-episode-item ${isActive ? 'is-active' : ''}" data-ep-id="${ep.id}">
+            <span class="art-ep-num">${ep.episode}</span>
+            <div class="art-ep-info">
+              <span class="art-ep-name">${ep.title || `Episode ${ep.episode}`}</span>
+              ${isActive ? '<span class="art-ep-playing">Playing</span>' : ''}
+            </div>
+          </button>
+        `;
+      }
+    }
+
+    const layerHtml = `
+      <div class="art-episodes-panel" style="display: none;">
+        <div class="art-episodes-header">
+          <span>Episodes</span>
+          <button class="art-ep-close">×</button>
+        </div>
+        <div class="art-episodes-body">
+          ${episodesHtml}
+        </div>
+      </div>
+    `;
+
+    options.layers = [
+      ...(options.layers || []),
+      {
+        name: 'episodesPanel',
+        html: layerHtml,
+      }
+    ];
+
+    options.controls = [
+      ...(options.controls || []),
+      {
+        position: 'right',
+        html: '<span class="art-control-btn">Episodes</span>',
+        tooltip: 'Episodes',
+        click: function () {
+          const panel = player?.template.$player.querySelector('.art-episodes-panel') as HTMLElement;
+          if (panel) {
+            panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+          }
+        },
+      }
+    ];
+  }
+
   console.log('[VideoPlayer] Initializing Artplayer with options:', { url: options.url, type: options.type });
   try {
     player = new Artplayer(options);
@@ -157,6 +226,34 @@ onMounted(async () => {
   player.on('error', (err: any) => {
     console.error('[VideoPlayer] Error:', err);
   });
+
+  // Attach episode click listener
+  if (props.isTvSeries) {
+    const { $player } = player.template;
+    $player.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      
+      const epEl = target.closest('.art-episode-item');
+      if (epEl) {
+        const epId = epEl.getAttribute('data-ep-id');
+        if (epId) {
+          const selectedEp = props.episodes?.find((ep: any) => ep.id === epId);
+          if (selectedEp && selectedEp.id !== props.currentEpisode?.id) {
+             emit('episode-change', selectedEp);
+             const panel = $player.querySelector('.art-episodes-panel') as HTMLElement;
+             if (panel) panel.style.display = 'none';
+          }
+        }
+        return;
+      }
+
+      const closeBtn = target.closest('.art-ep-close');
+      if (closeBtn) {
+        const panel = $player.querySelector('.art-episodes-panel') as HTMLElement;
+        if (panel) panel.style.display = 'none';
+      }
+    });
+  }
 });
 
 // Watch for src changes (from polling — stream becomes ready after initial render)
@@ -176,6 +273,29 @@ watch(
         player = null;
       });
   },
+);
+
+// Watch for episode change to update active state in UI
+watch(
+  () => props.currentEpisode,
+  (newEp) => {
+    if (!player || !newEp) return;
+    const { $player } = player.template;
+    const items = $player.querySelectorAll('.art-episode-item');
+    items.forEach(el => {
+      if (el.getAttribute('data-ep-id') === newEp.id) {
+        el.classList.add('is-active');
+        const info = el.querySelector('.art-ep-info');
+        if (info && !info.querySelector('.art-ep-playing')) {
+          info.insertAdjacentHTML('beforeend', '<span class="art-ep-playing">Playing</span>');
+        }
+      } else {
+        el.classList.remove('is-active');
+        const playingStr = el.querySelector('.art-ep-playing');
+        if (playingStr) playingStr.remove();
+      }
+    });
+  }
 );
 
 onUnmounted(() => {
@@ -239,5 +359,123 @@ onUnmounted(() => {
   gap: var(--space-4);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
+}
+
+/* Custom Episode Selector Styles */
+:deep(.art-control-btn) {
+  padding: 0 10px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(.art-episodes-panel) {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 50px; /* Above control bar */
+  width: 320px;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(20px);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+:deep(.art-episodes-header) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+:deep(.art-ep-close) {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+:deep(.art-ep-close:hover) {
+  color: #fff;
+}
+
+:deep(.art-episodes-body) {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+:deep(.art-ep-season-title) {
+  padding: 8px 20px;
+  font-size: 14px;
+  color: rgba(245, 197, 24, 1);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+:deep(.art-episode-item) {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  gap: 16px;
+}
+
+:deep(.art-episode-item:hover) {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+:deep(.art-episode-item.is-active) {
+  background: rgba(245, 197, 24, 0.1);
+  color: rgba(245, 197, 24, 1);
+  border-left: 3px solid rgba(245, 197, 24, 1);
+}
+
+:deep(.art-ep-num) {
+  font-size: 18px;
+  font-weight: 600;
+  min-width: 24px;
+}
+
+:deep(.art-ep-info) {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+:deep(.art-ep-name) {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+:deep(.art-ep-playing) {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 600px) {
+  :deep(.art-episodes-panel) {
+    width: 100%;
+    border-left: none;
+  }
 }
 </style>

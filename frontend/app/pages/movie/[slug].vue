@@ -29,6 +29,10 @@
             :subtitles="subtitleTracks"
             :is-hls="false"
             player-id="main-player"
+            :episodes="movie.episodes"
+            :current-episode="selectedEpisode"
+            :is-tv-series="movie.type === 'TV_SERIES'"
+            @episode-change="handleEpisodeChangeFromPlayer"
           />
           <template #fallback>
             <div class="video-player--loading">Loading player...</div>
@@ -176,6 +180,26 @@ function selectEpisode(ep: any) {
     selectedQuality.value = activeVideoSources.value[0]!.quality;
   }
   streamUrl.value = '';
+}
+
+function handleEpisodeChangeFromPlayer(ep: any) {
+  selectedEpisode.value = ep;
+  selectedSeason.value = ep.season;
+  
+  if (
+    !activeVideoSources.value.some((vs: any) => vs.quality === selectedQuality.value) &&
+    activeVideoSources.value.length
+  ) {
+    selectedQuality.value = activeVideoSources.value[0]!.quality;
+  }
+  
+  const source = activeVideoSources.value.find((vs: any) => vs.quality === selectedQuality.value) || activeVideoSources.value[0];
+  if (source) {
+    const streamingUrl = config.public.streamingUrl || '';
+    streamUrl.value = `${streamingUrl}/api/stream/gdrive/${source.driveFileId}`;
+  } else {
+    streamUrl.value = '';
+  }
 }
 
 function playVideo() {
