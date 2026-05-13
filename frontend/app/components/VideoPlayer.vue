@@ -45,7 +45,6 @@ function restoreProgress() {
 }
 
 onMounted(async () => {
-
   if (!playerContainer.value) return;
 
   const ArtplayerModule = await import('artplayer');
@@ -83,7 +82,7 @@ onMounted(async () => {
       playsInline: true,
     },
   };
-  
+
   // Disable swipe-to-seek completely using Artplayer's private config if gesture: false isn't enough,
   // but gesture: false disables brightness/volume/seek swiping on mobile.
   options.gesture = false;
@@ -123,7 +122,6 @@ onMounted(async () => {
   if (props.isHls) {
     options.customType = {
       m3u8: (videoEl: HTMLVideoElement, url: string) => {
-
         if (Hls.isSupported()) {
           const hls = new Hls({
             startPosition: 0,
@@ -141,13 +139,10 @@ onMounted(async () => {
             videoEl.play().catch(() => {});
           });
           hls.on(Hls.Events.ERROR, (_event: any, data: any) => {
-
             if (data.fatal) {
               if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-
                 hls.startLoad();
               } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-
                 hls.recoverMediaError();
               } else {
                 hls.destroy();
@@ -174,7 +169,7 @@ onMounted(async () => {
     }
 
     const seasonNums = Array.from(seasons.keys()).sort((a, b) => a - b);
-    
+
     let episodesHtml = '';
     for (const s of seasonNums) {
       episodesHtml += `<div class="art-ep-season-title">Season ${s}</div>`;
@@ -212,7 +207,7 @@ onMounted(async () => {
         html: layerHtml,
         click: function (layer: HTMLElement, e: Event) {
           const target = e.target as HTMLElement;
-          
+
           const epEl = target.closest('.art-episode-item');
           if (epEl) {
             const epIdStr = epEl.getAttribute('data-ep-id');
@@ -233,8 +228,8 @@ onMounted(async () => {
             const panel = player?.template.$player.querySelector('.art-episodes-panel') as HTMLElement;
             if (panel) panel.style.display = 'none';
           }
-        }
-      }
+        },
+      },
     ];
 
     options.controls = [
@@ -249,16 +244,13 @@ onMounted(async () => {
             panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
           }
         },
-      }
+      },
     ];
   }
 
-
   try {
     player = new Artplayer(options);
-
   } catch (initErr) {
-
     return;
   }
 
@@ -307,13 +299,15 @@ watch(
 
     if (newSubs && newSubs.length > 0) {
       const defaultSub = newSubs.find((s: any) => s.default) || newSubs[0];
-      player.subtitle.switch(defaultSub.url, { name: defaultSub.label || 'Subtitle' });
+      if (defaultSub) {
+        player.subtitle.switch(defaultSub.url, { name: defaultSub.label || 'Subtitle' });
+      }
     } else {
       player.subtitle.switch('');
       player.subtitle.show = false;
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 // Watch for episode change to update active state in UI
@@ -323,7 +317,7 @@ watch(
     if (!player || !newEp) return;
     const { $player } = player.template;
     const items = $player.querySelectorAll('.art-episode-item');
-    items.forEach(el => {
+    items.forEach((el) => {
       if (el.getAttribute('data-ep-id') === newEp.id.toString()) {
         el.classList.add('is-active');
         const info = el.querySelector('.art-ep-info');
@@ -336,7 +330,7 @@ watch(
         if (playingStr) playingStr.remove();
       }
     });
-  }
+  },
 );
 
 onUnmounted(() => {
