@@ -299,6 +299,23 @@ watch(
   },
 );
 
+// Watch for subtitle changes (when episode changes)
+watch(
+  () => props.subtitles,
+  (newSubs) => {
+    if (!player || !player.subtitle) return;
+
+    if (newSubs && newSubs.length > 0) {
+      const defaultSub = newSubs.find((s: any) => s.default) || newSubs[0];
+      player.subtitle.switch(defaultSub.url, { name: defaultSub.label || 'Subtitle' });
+    } else {
+      player.subtitle.switch('');
+      player.subtitle.show = false;
+    }
+  },
+  { deep: true }
+);
+
 // Watch for episode change to update active state in UI
 watch(
   () => props.currentEpisode,
