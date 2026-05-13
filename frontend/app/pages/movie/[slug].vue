@@ -184,6 +184,26 @@ function selectEpisode(ep: any) {
   streamUrl.value = '';
 }
 
+function loadSubtitles() {
+  if (activeSubtitles.value.length) {
+    subtitleTracks.value = activeSubtitles.value.map((s: any) => {
+      let url = s.fileUrl;
+      // Ensure episode subtitles hit the endpoint with the episode parameter
+      if (movie.value?.type === 'TV_SERIES' && selectedEpisode.value?.id) {
+        url += (url.includes('?') ? '&' : '?') + 'episodeId=' + selectedEpisode.value.id;
+      }
+      return {
+        url,
+        label: s.label,
+        language: s.language,
+        default: s.language === 'vi',
+      };
+    });
+  } else {
+    subtitleTracks.value = [];
+  }
+}
+
 function handleEpisodeChangeFromPlayer(ep: any) {
   if (!auth.requireAuth(route.fullPath)) {
     return;
@@ -206,6 +226,8 @@ function handleEpisodeChangeFromPlayer(ep: any) {
   } else {
     streamUrl.value = '';
   }
+
+  loadSubtitles();
 }
 
 function playVideo() {
@@ -230,21 +252,7 @@ function playVideo() {
   streamUrl.value = `${streamingUrl}/api/stream/gdrive/${source.driveFileId}`;
 
   // Load subtitles
-  if (activeSubtitles.value.length) {
-    subtitleTracks.value = activeSubtitles.value.map((s: any) => {
-      let url = s.fileUrl;
-      // Ensure episode subtitles hit the endpoint with the episode parameter
-      if (movie.value?.type === 'TV_SERIES' && selectedEpisode.value?.id) {
-        url += (url.includes('?') ? '&' : '?') + 'episodeId=' + selectedEpisode.value.id;
-      }
-      return {
-        url,
-        label: s.label,
-        language: s.language,
-        default: s.language === 'vi',
-      };
-    });
-  }
+  loadSubtitles();
 
   nextTick(() => {
     document.getElementById('player-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
