@@ -1,4 +1,6 @@
-## MovieLix
+<p align="center">
+  <img src="assets/logo.png" alt="MovieLix Logo" width="200"/>
+</p>
 
 A modern movie streaming platform built for speed and simplicity.  
 Watch your favorite movies in high quality, anytime, anywhere.
